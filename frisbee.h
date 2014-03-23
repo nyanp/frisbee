@@ -41,11 +41,19 @@ namespace frisbee
         throw std::runtime_error("language not found");
     }
 
+    inline std::string trim(const std::string& src) {
+        std::string res(src);
+        res.erase(std::remove(res.begin(), res.end(), '\n'), res.end());
+        return res;
+    }
+
     inline std::string json_escape(const std::string& src) {
         std::string targ(src);
 #if BOOST_OS_WINDOWS
         boost::replace_all(targ, "<", "^<"); // for windows
         boost::replace_all(targ, ">", "^>"); // for windows
+        boost::replace_all(targ, "|", "^|"); // for windows
+        boost::replace_all(targ, "&", "^&"); // for windows
 #endif
         boost::replace_all(targ, "\"", "\\\"");
         boost::replace_all(targ, "\\\\\"", "\\\\\\\"");
@@ -74,8 +82,9 @@ namespace frisbee
         std::string compiler_error() const { return compiler_error_; }
 
         template<typename T>
-        T get_result() const { return boost::lexical_cast<T>(program_output_); }
-
+        T get_result(bool with_trim = false) const {
+            return boost::lexical_cast<T>(with_trim ? trim(program_output_) : program_output_);
+        }
     private:
         boost::optional<int> status_;
         std::string signal_;
@@ -170,6 +179,7 @@ namespace frisbee
         compile_result r = compile(lang, source_code);
         if (r.is_error())
             throw std::runtime_error("failed to compile:\n" + r.compiler_error());
-        return r.get_result<T>();
+        return r.get_result<T>(boost::is_arithmetic<T>::value); // trim string if T is an arithmetric type
     }
+
 } // namespace frisbee
