@@ -28,10 +28,13 @@ int main(void)
         cout << eval<string>("perl", "print (1..10)");
         cout << eval<int>("ruby", "$,=\" \"; p (1..10).inject(0) {|sum, i| sum + i }");
         
-        // compile check
+        // compile string
         auto result = compile("C++", "#include <iostream>");
         if (result.is_error())
-            cout << result.compiler_error();        
+            cout << result.compiler_error();
+
+        // compile from file
+        result = compile_fromfile("C++", "foo.cpp");
     }
     catch (const exception& e)
     {
